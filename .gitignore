@@ -39,3 +39,9 @@
 
 # debug information files
 *.dwo
+/out/build/WSL-GCC-Debug/build.ninja
+/out/build/WSL-GCC-Debug/CMakeCache.txt
+/out/build/WSL-GCC-Debug/cmake_install.cmake
+/out/build/x64-Debug/VSInheritEnvironments.txt
+/.vs
+/out/build
