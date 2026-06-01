@@ -1,10 +1,12 @@
 ﻿#include <iostream>
 #include <fstream>
 #include <vector>
+#include <string>
 #include <filesystem> // [NOU - Întâlnirea 3] Biblioteca standard C++17 pentru lucrul cu directoare
 #include "TextDocument.h"
 #include "InvertedIndex.h"
 #include "IndexException.h" // Includem excepția noastră custom
+#include "Logger.h"         // [NOU - Observer] Includem clasa Logger pentru inregistrarea cautarilor
 
 namespace fs = std::filesystem; // Folosim un alias pentru a scrie mai usor
 
@@ -19,16 +21,20 @@ void createDummyFileInFolder(const std::string& folder, const std::string& name,
 }
 
 int main() {
-    std::cout << "=== Motor de Cautare Documente (Faza 3) ===\n\n";
+    std::cout << "=== Motor de Cautare Documente (Faza 3 FINAL) ===\n\n";
 
     std::string testFolder = "documente_test";
 
     // 1. Generăm automat câteva documente text pentru testare in noul folder
     createDummyFileInFolder(testFolder, "istoric.txt", "Stefan cel Mare a fost domnitor in Moldova si a castigat multe lupte.");
     createDummyFileInFolder(testFolder, "stiinta.txt", "In fizica, teoria relativitatii a fost formulata de Albert Einstein.");
-    createDummyFileInFolder(testFolder, "programare.txt", "Un programator bun scrie cod curat si foloseste un index pentru cautare.");
+    createDummyFileInFolder(testFolder, "programare.txt", "Un programator bun scrie cod curat si foloseste un index pentru cautare in logica.");
 
     InvertedIndex index;
+
+    // [POO - Observer (Bonus)] Cream obiectul Logger si il adaugam in lista de observatori a motorului de cautare
+    Logger searchLogger;
+    index.addObserver(&searchLogger);
 
     // [POO - Polimorfism] Cream un vector de pointeri catre clasa de BAZA (IDocument)
     std::vector<IDocument*> documents;
@@ -80,27 +86,65 @@ int main() {
     }
 
     // 3. Interfața Interactivă (Meniul cu buclă while)
-    std::string command;
+    int optiune;
     while (true) {
-        std::cout << "Introdu un cuvant pt cautare (sau 'exit' pt a inchide): ";
-        std::cin >> command;
+        std::cout << "\n================================================\n";
+        std::cout << "             MENIU MOTOR DE CAUTARE             \n";
+        std::cout << "================================================\n";
+        std::cout << " 1. Efectueaza o cautare (Simpla sau AND/OR)\n";
+        std::cout << " 2. Afiseaza documentele indexate in sistem\n";
+        std::cout << " 0. Iesire program\n";
+        std::cout << "------------------------------------------------\n";
+        std::cout << "Alege o optiune: ";
 
-        if (command == "exit") {
+        // Verificam daca utilizatorul introduce ceva valid (numar)
+        if (!(std::cin >> optiune)) {
+            std::cin.clear();
+            std::cin.ignore(10000, '\n');
+            std::cout << "Eroare: Te rog sa introduci un numar valid!\n";
+            continue;
+        }
+
+        if (optiune == 0) {
             break;
         }
+        else if (optiune == 1) {
+            std::string command;
+            // [Actualizat Intalnirea 3] Informam utilizatorul ca acum poate cauta cu AND / OR
+            std::cout << "\n-> Introdu un cuvant (ex: 'teoria') sau o cautare avansata (ex: 'teoria AND fizica'):\nCauta: ";
 
-        std::vector<std::string> results = index.search(command);
+            // Folosim getline cu std::ws in loc de std::cin simplu, pentru ca cin se opreste la primul spatiu 
+            // iar noi trebuie sa citim toata linia "cuvant1 AND cuvant2"
+            std::getline(std::cin >> std::ws, command);
 
-        if (results.empty()) {
-            std::cout << " -> Cuvantul '" << command << "' nu a fost gasit (sau este stop-word).\n";
-        }
-        else {
-            std::cout << " -> Cuvantul '" << command << "' apare in:\n";
-            for (const std::string& path : results) {
-                std::cout << "    - " << path << "\n";
+            // Apelam metoda noastra modernizata care suporta operatori logici
+            std::vector<std::string> results = index.search(command);
+
+            std::cout << "\n[ REZULTATE ]\n";
+            if (results.empty()) {
+                std::cout << " -> Interogarea '" << command << "' nu a returnat niciun rezultat valid.\n";
+            }
+            else {
+                for (const std::string& path : results) {
+                    std::cout << "    - Document: " << path << "\n";
+                }
             }
         }
-        std::cout << "------------------------------------------------\n";
+        else if (optiune == 2) {
+            std::cout << "\n[ DOCUMENTE INCARCATE ]\n";
+            if (documents.empty()) {
+                std::cout << " -> Niciun document nu este incarcat momentan.\n";
+            }
+            else {
+                for (IDocument* doc : documents) {
+                    // [POO - Polimorfism] Apelam metoda virtuala getPath() prin pointerul de baza
+                    std::cout << "    - " << doc->getPath() << "\n";
+                }
+            }
+        }
+        else {
+            std::cout << "\n[!] Optiune invalida! Te rog sa alegi 0, 1 sau 2.\n";
+        }
     }
 
     // 4. Eliberarea corectă a memoriei pentru a preveni memory leaks
