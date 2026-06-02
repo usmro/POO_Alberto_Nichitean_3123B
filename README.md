@@ -2,7 +2,7 @@
 
 Acest repository conține activitatea desfășurată la disciplina POO.
 
-# 🔍 Proiect POO - Motor de Căutare pentru Documente Text
+# Proiect POO - Motor de Căutare pentru Documente Text
 
 **Student:** Nichitean Alberto | **Grupa:** 3123B | **Tehnologii:** C++17, STL, CMake
 
@@ -139,6 +139,14 @@ classDiagram
 
 ---
 
+* **Căutare Rapidă și Case-Insensitive**: Căutările folosesc `std::map`, oferind un timp de acces foarte rapid ($O(\log n)$). Mai mult, căutarea nu ține cont de litere mari/mici (`Fizica` este tratat identic cu `fizica`).
+
+### 💡 De ce am folosit Observer Pattern?
+
+* **Decuplare totală:** Motorul de căutare (`InvertedIndex`) nu știe și nu îi pasă de existența Logger-ului. El doar strigă „S-a făcut o căutare!”, iar oricine este interesat ascultă.
+
+* **Extensibilitate:** Pe viitor, putem adăuga un sistem care trimite un email la fiecare căutare, fără să modificăm nicio linie din clasa motorului de căutare.
+
 ## 🖥️ Exemplu de Rulare (Sesiune în Consolă)
 
 ```text
@@ -194,12 +202,6 @@ Alege o optiune: 0
 
 Program incheiat curat. La revedere!
 
-* **Căutare Rapidă și Case-Insensitive**: Căutările folosesc `std::map`, oferind un timp de acces foarte rapid ($O(\log n)$). Mai mult, căutarea nu ține cont de litere mari/mici (`Fizica` este tratat identic cu `fizica`).
 
-### 💡 De ce am folosit Observer Pattern?
-
-* **Decuplare totală:** Motorul de căutare (`InvertedIndex`) nu știe și nu îi pasă de existența Logger-ului. El doar strigă „S-a făcut o căutare!”, iar oricine este interesat ascultă.
-
-* **Extensibilitate:** Pe viitor, putem adăuga un sistem care trimite un email la fiecare căutare, fără să modificăm nicio linie din clasa motorului de căutare.
 
 
