@@ -2,11 +2,26 @@
 
 Acest repository conține activitatea desfășurată la disciplina POO.
 
-# Proiect POO - Motor de Căutare
+# Proiect POO - Motor de Căutare pentru Documente Text
 
-**Student:** Nichitean Alberto | **Grupa:** 3123B
+**Student:** Nichitean Alberto | **Grupa:** 3123B | **Tehnologii:** C++17, STL, CMake
 
-Acesta este proiectul meu pentru laboratorul de POO. Am pus la punct structura de bază, am integrat concepte avansate și m-am asigurat că totul rulează corect pe Linux (WSL).
+Proiectul implementează un motor de căutare de tip *Inverted Index*, capabil să scaneze dinamic directoare, să proceseze textul (eliminând semnele de punctuație și cuvintele de legătură) și să rezolve interogări logice complexe, totul rulând printr-o interfață consolă interactivă.
+
+## 📋 Stadiu Cerințe și Funcționalități
+
+| Cerință | Tip | Status | Detalii Implementare |
+| :--- | :---: | :---: | :--- |
+| **Clasa Document** (cale, conținut) | Obligatoriu | ✅ | `TextDocument` implementează interfața `IDocument`. |
+| **Clasa Index** (`std::map`) | Obligatoriu | ✅ | Căutare rapidă $O(\log n)$ folosind `map<string, vector>`. |
+| **Încărcare dinamică din director** | Obligatoriu | ✅ | Utilizare `std::filesystem` pentru citirea folderelor. |
+| **Manipulare String-uri** | Obligatoriu | ✅ | Transformare `tolower` și eliminare punctuație. |
+| **Teste Unitare** | Facultativ (Bonus)| ✅ | Suită izolată în `tests/test_index.cpp` folosind `assert`. |
+| **Eliminare Stop-words** | Facultativ (Bonus)| ✅ | Filtrare prin `std::set` a cuvintelor ("și", "în", "la" etc.). |
+| **Căutare Avansată (AND / OR)** | Facultativ (Bonus)| ✅ | Suport pentru intersecție (AND) și reuniune (OR). |
+| **Observer Pattern (Logger)** | Facultativ (Bonus)| ✅ | Decuplarea sistemului de logare a căutărilor de Index. |
+
+## 🚀 Evoluția Proiectului (Istoric)
 
 ## 📂 Întâlnirea 1: Structura de bază
 
@@ -40,6 +55,20 @@ Acesta este proiectul meu pentru laboratorul de POO. Am pus la punct structura d
 
 ---
 
+## 🌟 Întâlnirea 3: Funcționalități Avansate și Design Patterns
+
+### Noutăți în cod:
+
+* **Încărcare Automată (`std::filesystem`)**: Programul nu mai folosește fișiere hardcodate. Acum scanează automat un folder țintă (`documente_test`) și încarcă în memorie toate fișierele valide găsite.
+
+* **Căutare Avansată (AND / OR)**: Am extins logica de căutare pentru a permite interogări complexe folosind operatori logici (ex: `teoria AND fizica` sau `cod OR domnitor`).
+
+* **Design Pattern Observer (`IObserver` & `Logger`)**: Am implementat un sistem de monitorizare decuplat. Motorul de căutare notifică automat Logger-ul la fiecare acțiune, care salvează istoricul căutărilor atât în consolă, cât și într-un fișier local (`search_history.log`).
+
+* **Meniu Principal Interactiv**: Am restructurat `main.cpp` pentru a oferi un meniu numeric complet utilizatorului, tratând input-urile invalide.
+
+---
+
 ## 🛠️ Cum se compilează și rulează (Linux / WSL)
 
 Proiectul folosește CMake pentru managementul build-ului.
@@ -66,7 +95,7 @@ Proiectul folosește CMake pentru managementul build-ului.
 
 ## Arhitectura și Tehnologie (Diagrama UML)
 
-Mai jos este structura claselor, ilustrând conceptele de **Moștenire** (TextDocument derivă din IDocument) și **Polimorfism**.
+Mai jos este structura claselor, ilustrând conceptele de **Moștenire** (TextDocument derivă din IDocument), **Polimorfism** și implementarea tiparului **Observer**.
 
 ```mermaid
 classDiagram
@@ -86,10 +115,97 @@ classDiagram
     
     class InvertedIndex {
         -indexData : map
+        -stopWords : set
+        -observers : vector
+        +addObserver(obs : IObserver*)
         +addDocument(doc : IDocument)
-        +search(cuvant : string) : vector
+        +search(query : string) : vector
+    }
+    
+    class IObserver {
+        <<Interfață>>
+        +update(query : string) : void
+    }
+    
+    class Logger {
+        +update(query : string) : void
     }
     
     IDocument <|-- TextDocument
     IDocument <-- InvertedIndex : folosește
+    IObserver <|-- Logger : implementează
+    IObserver <-- InvertedIndex : notifică
 ```
+
+---
+
+### ⚡ De ce am ales `std::map` pentru indexare?
+
+* **Performanță $O(\log n)$:** În loc să parcurgem fișierele cuvânt cu cuvânt la fiecare interogare, am construit un Inverted Index. Folosind `std::map`, găsim documentele asociate unui cuvânt aproape instantaneu, cu o complexitate logaritmică.
+
+* **Case-Insensitive:** Utilizatorul nu trebuie să își facă griji pentru litere mari/mici. Sistemul standardizează totul în fundal (ex: `Fizica` este tratat identic cu `fizica`).
+
+### 💡 De ce am folosit Observer Pattern?
+
+* **Decuplare totală:** Motorul de căutare (`InvertedIndex`) nu știe și nu îi pasă de existența Logger-ului. El doar strigă „S-a făcut o căutare!”, iar oricine este interesat ascultă.
+
+* **Extensibilitate:** Pe viitor, putem adăuga un sistem care trimite un email la fiecare căutare, fără să modificăm nicio linie din clasa motorului de căutare.
+
+## 🖥️ Exemplu de Rulare (Sesiune în Consolă)
+
+```text
+=== Motor de Cautare Documente (Faza 3 FINAL) ===
+
+[INFO] Se pregatesc documentele din folderul 'documente_test'...
+  -> Gasit si pregatit: documente_test/istoric.txt
+  -> Gasit si pregatit: documente_test/programare.txt
+  -> Gasit si pregatit: documente_test/stiinta.txt
+
+[INFO] Se incepe indexarea...
+[INFO] Indexare completata cu succes!
+
+================================================
+             MENIU MOTOR DE CAUTARE             
+================================================
+ 1. Efectueaza o cautare (Simpla sau AND/OR)
+ 2. Afiseaza documentele indexate in sistem
+ 0. Iesire program
+------------------------------------------------
+Alege o optiune: 2
+
+[ DOCUMENTE INCARCATE ]
+    - documente_test/istoric.txt
+    - documente_test/programare.txt
+    - documente_test/stiinta.txt
+
+================================================
+             MENIU MOTOR DE CAUTARE             
+================================================
+ 1. Efectueaza o cautare (Simpla sau AND/OR)
+ 2. Afiseaza documentele indexate in sistem
+ 0. Iesire program
+------------------------------------------------
+Alege o optiune: 1
+
+-> Introdu un cuvant (ex: 'teoria') sau o cautare avansata (ex: 'teoria AND fizica'):
+Cauta: programator AND index
+
+[LOGGER] A fost efectuata o cautare pentru: 'programator AND index'
+
+[ REZULTATE ]
+    - Document: documente_test/programare.txt
+
+================================================
+             MENIU MOTOR DE CAUTARE             
+================================================
+ 1. Efectueaza o cautare (Simpla sau AND/OR)
+ 2. Afiseaza documentele indexate in sistem
+ 0. Iesire program
+------------------------------------------------
+Alege o optiune: 0
+
+Program incheiat curat. La revedere!
+
+
+
+
