@@ -139,7 +139,11 @@ classDiagram
 
 ---
 
-* **Căutare Rapidă și Case-Insensitive**: Căutările folosesc `std::map`, oferind un timp de acces foarte rapid ($O(\log n)$). Mai mult, căutarea nu ține cont de litere mari/mici (`Fizica` este tratat identic cu `fizica`).
+### ⚡ De ce am ales `std::map` pentru indexare?
+
+* **Performanță $O(\log n)$:** În loc să parcurgem fișierele cuvânt cu cuvânt la fiecare interogare, am construit un Inverted Index. Folosind `std::map`, găsim documentele asociate unui cuvânt aproape instantaneu, cu o complexitate logaritmică.
+
+* **Case-Insensitive:** Utilizatorul nu trebuie să își facă griji pentru litere mari/mici. Sistemul standardizează totul în fundal (ex: `Fizica` este tratat identic cu `fizica`).
 
 ### 💡 De ce am folosit Observer Pattern?
 
